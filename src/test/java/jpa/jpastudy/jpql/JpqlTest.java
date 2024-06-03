@@ -13,7 +13,7 @@ import java.util.List;
 
 @SpringBootTest
 @Transactional
-@Rollback(value = false)
+//@Rollback(value = false)
 public class JpqlTest {
 
     @PersistenceContext
@@ -62,7 +62,7 @@ public class JpqlTest {
     public void 프로젝션_SELECT() {
         Team team = new Team();
         team.setAge(25);
-        team.setUsername("teamA");
+        team.setName("teamA");
         em.persist(team);
 
         Member member = new Member();

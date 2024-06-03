@@ -16,7 +16,7 @@ public class Team {
     @Id
     @GeneratedValue
     private Long id;
-    private String username;
+    private String name;
     private int age;
 
     @OneToMany(mappedBy = "team")

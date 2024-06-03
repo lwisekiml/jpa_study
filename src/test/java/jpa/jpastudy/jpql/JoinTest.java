@@ -24,7 +24,7 @@ public class JoinTest {
         em.persist(team);
 
         Member member = new Member();
-        member.setUsername("member");
+        member.setUsername("teamA");
         member.setAge(10);
 
         member.setTeam(team);
@@ -105,5 +105,12 @@ public class JoinTest {
                 .getResultList();
         // 조건을 만족하는 것이 없으므로 team 쪽은 null 값으로 join 된다.
         System.out.println("r.size = " + r.size());
+
+        System.out.println("===================================================================================");
+        // 서브 쿼리 - 아래와 같은 형식으로 사용할 수 있다 정도로만
+        // 서브 쿼리(현재는 from도 서브쿼리 가능)
+//        String subQuery = "select (select avg(m1.age) from Member m1) as avgAge from Member m left join Team t on m.username = t.name";
+        String subQuery = "select mm.age, mm.username" +
+                    " from (select m.age, m.username from Member m) as avgAge from Member m left join Team t on m.username = t.name";
     }
 }

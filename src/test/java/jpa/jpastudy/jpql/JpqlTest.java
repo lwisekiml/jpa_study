@@ -286,4 +286,66 @@ public class JpqlTest {
             System.out.println("s = " + s); // 이름 없는 회원
         }
     }
+
+    @Test
+    public void JPQL함수() {
+        Member member1 = new Member();
+        member1.setUsername("관리자1");
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("관리자2");
+        em.persist(member2);
+
+        em.flush();
+        em.clear();
+
+        String query1 = "select concat('a', 'b') from Member m"; // s = ab
+        // substring(target, start, range)
+        String query2 = "select substring(m.username, 2, 3) from Member m"; // s = 리자1, s = 리자2
+
+        List<String> result1 = em.createQuery(query1, String.class).getResultList();
+        List<String> result2 = em.createQuery(query2, String.class).getResultList();
+
+        for (String s : result1) {
+            System.out.println("s = " + s);
+        }
+
+        for (String s : result2) {
+            System.out.println("s = " + s);
+        }
+
+        System.out.println("===================================================================================");
+
+//        String query = "select locate('de', 'abcdegf') from Member m"; // s = 4
+        String query = "select size(t.members) from Team t";
+
+        List<Long> result = em.createQuery(query, Long.class).getResultList();
+
+        for (Long s : result) {
+            System.out.println("s = " + s); // s = 0 이 나와야 하는데 안나온다.
+        }
+    }
+
+    @Test
+    public void JPQL함수_사용자_정의_함수_호출() {
+        Member member1 = new Member();
+        member1.setUsername("관리자1");
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("관리자2");
+        em.persist(member2);
+
+        em.flush();
+        em.clear();
+
+            String query = "select function('gro', m.username) from Member m";
+//        String query = "select gro(m.username) from Member m";
+        List<String> result = em.createQuery(query, String.class).getResultList();
+
+        for (String s : result) {
+            System.out.println("s = " + s); // s = 관리자1,관리자2
+        }
+    }
 }

@@ -13,7 +13,7 @@ import java.util.List;
 
 @SpringBootTest
 @Transactional
-//@Rollback(value = false)
+@Rollback(value = false)
 public class JpqlTest {
 
     @PersistenceContext
@@ -168,5 +168,60 @@ public class JpqlTest {
         for (Member member : result) {
             System.out.println("member = " + member);
         }
+    }
+
+    @Test
+    public void JPQL_타입표현과_기타식() {
+        Team team = new Team();
+        team.setName("teamA");
+        em.persist(team);
+
+        Member member = new Member();
+        member.setUsername("teamA");
+        member.setAge(10);
+        member.setType(MemberType.ADMIN);
+
+        member.setTeam(team);
+
+        em.persist(member);
+
+        em.flush();
+        em.clear();
+
+        // 1
+        String query1 = "select m.username, 'HELLO', TRUE from Member m " +
+                        "where m.type = jpa.jpastudy.jpql.MemberType.ADMIN";
+        List<Object[]> result1 = em.createQuery(query1)
+                                    .getResultList();
+
+        // 2
+        String query2 = "select m.username, 'HELLO', TRUE from Member m " +
+                        "where m.type = :userType";
+//                        "where m.username is not null";
+//                        "where m.age between 0 and 10";
+        List<Object[]> result2 = em.createQuery(query2)
+                                    .setParameter("userType", MemberType.ADMIN)
+                                    .getResultList();
+
+        for (Object[] objects : result2) {
+            System.out.println("objects[0] = " + objects[0]);
+            System.out.println("objects[0] = " + objects[1]);
+            System.out.println("objects[0] = " + objects[2]);
+        }
+
+        System.out.println("===================================================================================");
+
+        Book book = new Book();
+        book.setName("JPA");
+        book.setAuthor("kim");
+
+        em.persist(book);
+
+        List<Item> resultList = em.createQuery("select i from Item i where type (i) = Book", Item.class)
+                .getResultList();
+        for (Item item : resultList) {
+            System.out.println("item = " + item);
+        }
+
     }
 }

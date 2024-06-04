@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,6 +20,7 @@ public class Team {
     private String name;
     private int age;
 
+//    @BatchSize(size = 100)
     @OneToMany(mappedBy = "team")
     private List<Member> members = new ArrayList<>();
 }

@@ -275,4 +275,20 @@ public class FetchJoinTest {
             System.out.println("member = " + member);
         }
     }
+
+    @Test
+    public void Named_쿼리() {
+        // 미리 전의해서 이름을 부여해두고 사용하는 JPQL
+        // 정적 쿼리
+        // 애플리케이션 로딩 시점에 초기화 후 재사용
+        // 애플리케이션 로딩 시점에 쿼리 검증
+
+        List<Member> resultList = em.createNamedQuery("Member.findByUsername", Member.class)
+                .setParameter("username", "회원1")
+                .getResultList();
+
+        for (Member member : resultList) {
+            System.out.println("member = " + member);
+        }
+    }
 }

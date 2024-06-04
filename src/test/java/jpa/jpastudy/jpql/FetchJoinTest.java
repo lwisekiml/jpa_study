@@ -3,11 +3,17 @@ package jpa.jpastudy.jpql;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.util.List;
 
 @SpringBootTest
@@ -17,36 +23,49 @@ public class FetchJoinTest {
     @PersistenceContext
     EntityManager em;
 
+    // @BeforeEach를 skip하고 싶을 때 사용
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface SkipBeforeEach {
+    }
+
     @BeforeEach
-    public void before() {
-        Team teamA = new Team();
-        teamA.setName("팀A");
-        em.persist(teamA);
+    void setUp(TestInfo testInfo) {
+        boolean skip = testInfo.getTestMethod()
+                .map(method -> method.isAnnotationPresent(SkipBeforeEach.class))
+                .orElse(false);
 
-        Team teamB = new Team();
-        teamB.setName("팀B");
-        em.persist(teamB);
+        if (!skip) {
+            // 초기화 코드 실행
+            Team teamA = new Team();
+            teamA.setName("팀A");
+            em.persist(teamA);
 
-        Member member1 = new Member();
-        member1.setUsername("회원1");
-        member1.setAge(5);
-        member1.setTeam(teamA);
-        em.persist(member1);
+            Team teamB = new Team();
+            teamB.setName("팀B");
+            em.persist(teamB);
 
-        Member member2 = new Member();
-        member2.setUsername("회원2");
-        member2.setAge(30);
-        member2.setTeam(teamA);
-        em.persist(member2);
+            Member member1 = new Member();
+            member1.setUsername("회원1");
+            member1.setAge(5);
+            member1.setTeam(teamA);
+            em.persist(member1);
 
-        Member member3 = new Member();
-        member3.setUsername("회원3");
-        member3.setAge(20);
-        member3.setTeam(teamB);
-        em.persist(member3);
+            Member member2 = new Member();
+            member2.setUsername("회원2");
+            member2.setAge(30);
+            member2.setTeam(teamA);
+            em.persist(member2);
 
-        em.flush();
-        em.clear();
+            Member member3 = new Member();
+            member3.setUsername("회원3");
+            member3.setAge(20);
+            member3.setTeam(teamB);
+            em.persist(member3);
+
+            em.flush();
+            em.clear();
+        }
     }
 
     @Test
@@ -193,6 +212,67 @@ public class FetchJoinTest {
             for (Member member : team.getMembers()) {
                 System.out.println("-> member = " + member);
             }
+        }
+    }
+
+    @Test
+    @SkipBeforeEach
+    public void 엔티티_직접사용_기본키값_외래키값() {
+        Team teamA = new Team();
+        teamA.setName("팀A");
+        em.persist(teamA);
+
+        Team teamB = new Team();
+        teamB.setName("팀B");
+        em.persist(teamB);
+
+        Member member1 = new Member();
+        member1.setUsername("회원1");
+        member1.setAge(5);
+        member1.setTeam(teamA);
+        em.persist(member1);
+
+        Member member2 = new Member();
+        member2.setUsername("회원2");
+        member2.setAge(30);
+        member2.setTeam(teamA);
+        em.persist(member2);
+
+        Member member3 = new Member();
+        member3.setUsername("회원3");
+        member3.setAge(20);
+        member3.setTeam(teamB);
+        em.persist(member3);
+
+        em.flush();
+        em.clear();
+
+        // 1. 기본키 값
+        // 주석 코드와 현재 코드의 결과가 같다.
+//            String query = "select m from Member m where m = :member";
+        String query = "select m from Member m where m.id = :memberId";
+
+        Member findMember = em.createQuery(query, Member.class)
+//                    .setParameter("member", member1) // 엔티티를 파라미터로 전달
+                .setParameter("memberId", member1.getId()) // 식별자를 직접 전달
+                .getSingleResult();
+
+        System.out.println("findMember = " + findMember);
+
+        System.out.println("===================================================================================");
+
+        // 2. 외래키 값
+        // 주석 코드와 현재 코드의 결과가 같다.
+//            String query = "select m from Member m where m.team = :team";
+        String query2 = "select m from Member m where m.team.id = :teamId";
+
+        List<Member> members = em.createQuery(query2, Member.class)
+//                    .setParameter("team", teamA)
+                .setParameter("teamId", teamA.getId())
+                .getResultList();
+
+        for (Member member : members) {
+            System.out.println("member = " + member);
         }
     }
 }
